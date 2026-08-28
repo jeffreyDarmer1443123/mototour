@@ -1009,5 +1009,22 @@ input {
     width: auto;
     max-height: 46vh;
   }
+
+  .brand {
+    padding: 8px 10px;
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .fab-col {
+    top: calc(68px + var(--sat));
+    right: 10px;
+  }
+
+  .maplibregl-ctrl-bottom-right {
+    display: none;
+  }
 }
 
