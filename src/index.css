@@ -258,6 +258,32 @@ input {
   box-shadow: 0 0 0 6px rgba(42, 125, 225, 0.25);
 }
 
+/* ---------- Karten-Fehlerbanner ---------- */
+
+.map-error-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(90vw, 440px);
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.map-error-banner svg {
+  flex: none;
+  color: #ffb0a1;
+}
+
 /* ---------- Wegpunkt-Marker ---------- */
 
 .wp-marker {

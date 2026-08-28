@@ -48,11 +48,23 @@ function showFuelPopup(map: MapLibreMap, feature: MapGeoJSONFeature) {
   })
 }
 
+function detectWebglIssue(): string | null {
+  try {
+    const canvas = document.createElement('canvas')
+    const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl')
+    if (!gl) return 'Dein Browser unterstützt kein WebGL. Die Karte kann so nicht angezeigt werden.'
+    return null
+  } catch {
+    return 'WebGL konnte nicht gestartet werden. Die Karte kann so nicht angezeigt werden.'
+  }
+}
+
 export default function MapView() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const markersRef = useRef<Marker[]>([])
   const [ready, setReady] = useState(false)
+  const [mapError, setMapError] = useState<string | null>(null)
 
   const waypoints = useApp((s) => s.tour.waypoints)
   const route = useApp((s) => s.route)
@@ -63,6 +75,12 @@ export default function MapView() {
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
 
+    const webglIssue = detectWebglIssue()
+    if (webglIssue) {
+      setMapError(webglIssue)
+      return
+    }
+
     const map = new MapLibreMap({
       container: containerRef.current,
       style: MAP_STYLE,
@@ -71,7 +89,30 @@ export default function MapView() {
       attributionControl: { compact: true },
     })
     map.addControl(new NavigationControl({ showCompass: false }), 'bottom-right')
-    map.on('load', () => setReady(true))
+    map.on('load', () => {
+      setReady(true)
+      setMapError(null)
+    })
+    map.on('error', (e) => {
+      const message = e.error?.message ?? String(e.error ?? 'Unbekannter Fehler')
+      console.error('MapLibre error:', message)
+      setMapError(`Karte konnte nicht geladen werden: ${message}`)
+    })
+    const canvas = map.getCanvas()
+    canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault()
+      setReady(false)
+      setMapError('Die Kartendarstellung wurde unterbrochen (WebGL-Kontext verloren). Versuche die Seite neu zu laden.')
+    })
+    canvas.addEventListener('webglcontextrestored', () => {
+      setMapError(null)
+      map.setStyle(MAP_STYLE)
+    })
+    const loadTimeout = setTimeout(() => {
+      if (!map.loaded()) {
+        setMapError('Die Karte lädt ungewöhnlich lange. Prüfe deine Internetverbindung oder lade die Seite neu.')
+      }
+    }, 12000)
     map.on('click', (e) => {
       const state = useApp.getState()
       const { x, y } = e.point
@@ -114,6 +155,7 @@ export default function MapView() {
     mapHandle.current = map
 
     return () => {
+      clearTimeout(loadTimeout)
       map.remove()
       mapRef.current = null
       mapHandle.current = null
@@ -208,5 +250,18 @@ export default function MapView() {
     })
   }, [waypoints, updateWaypoint])
 
-  return <div ref={containerRef} className="map-root" />
+  return (
+    <>
+      <div ref={containerRef} className="map-root" />
+      {mapError && (
+        <div className="map-error-banner" role="alert">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+            <path d="M12 9v4M12 17h.01" />
+          </svg>
+          <span>{mapError}</span>
+        </div>
+      )}
+    </>
+  )
 }
