@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { RouteResult, Tour, TourOptions, Waypoint, WaypointKind } from '../types'
 import { DEFAULT_OPTIONS } from '../types'
+import type { FuelStationOnRoute } from '../services/fuelStations'
 
 export function newTour(): Tour {
   return {
@@ -20,6 +21,9 @@ interface AppState {
   route: RouteResult | null
   routeStatus: RouteStatus
   routeError: string | null
+  fuelVisible: boolean
+  fuelStations: FuelStationOnRoute[]
+  fuelStatus: RouteStatus
 
   addWaypoint: (lat: number, lon: number, extra?: { kind?: WaypointKind; name?: string; index?: number }) => void
   updateWaypoint: (id: string, patch: Partial<Pick<Waypoint, 'lat' | 'lon' | 'name'>>) => void
@@ -30,6 +34,8 @@ interface AppState {
   setTour: (tour: Tour) => void
   clearTour: () => void
   setRouteState: (route: RouteResult | null, status: RouteStatus, error?: string | null) => void
+  toggleFuel: () => void
+  setFuelState: (stations: FuelStationOnRoute[], status: RouteStatus) => void
 }
 
 function touch(tour: Tour, waypoints?: Waypoint[], options?: TourOptions): Tour {
@@ -46,6 +52,9 @@ export const useApp = create<AppState>((set) => ({
   route: null,
   routeStatus: 'idle',
   routeError: null,
+  fuelVisible: false,
+  fuelStations: [],
+  fuelStatus: 'idle',
 
   addWaypoint: (lat, lon, extra) =>
     set((s) => {
@@ -97,7 +106,20 @@ export const useApp = create<AppState>((set) => ({
 
   setRouteState: (route, status, error = null) =>
     set({ route, routeStatus: status, routeError: error }),
+
+  toggleFuel: () =>
+    set((s) => ({
+      fuelVisible: !s.fuelVisible,
+      fuelStations: s.fuelVisible ? [] : s.fuelStations,
+      fuelStatus: 'idle',
+    })),
+
+  setFuelState: (stations, status) => set({ fuelStations: stations, fuelStatus: status }),
 }))
+
+if (import.meta.env.DEV) {
+  ;(window as unknown as Record<string, unknown>).__app = useApp
+}
 
 export function waypointLabel(index: number, total: number, kind: WaypointKind): string {
   if (index === 0) return 'S'

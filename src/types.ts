@@ -26,6 +26,7 @@ export interface Tour {
 export interface RouteLeg {
   distanceKm: number
   durationMin: number
+  endCoordinateIndex: number
 }
 
 export interface RouteResult {

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useApp, waypointLabel } from '../state/store'
 import { formatDuration, formatKm } from '../utils/format'
 
@@ -22,8 +23,11 @@ export default function TourPanel() {
   const routeStatus = useApp((s) => s.routeStatus)
   const routeError = useApp((s) => s.routeError)
   const removeWaypoint = useApp((s) => s.removeWaypoint)
+  const reorderWaypoint = useApp((s) => s.reorderWaypoint)
   const setOptions = useApp((s) => s.setOptions)
   const clearTour = useApp((s) => s.clearTour)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [overIndex, setOverIndex] = useState<number | null>(null)
 
   return (
     <section className="panel" aria-label="Tourplanung">
@@ -43,7 +47,38 @@ export default function TourPanel() {
       ) : (
         <ol className="wp-list">
           {waypoints.map((wp, i) => (
-            <li key={wp.id} className="wp-row">
+            <li
+              key={wp.id}
+              className={'wp-row' + (overIndex === i && dragIndex !== i ? ' drag-over' : '')}
+              draggable
+              onDragStart={(e) => {
+                setDragIndex(i)
+                e.dataTransfer.effectAllowed = 'move'
+              }}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setOverIndex(i)
+              }}
+              onDrop={() => {
+                if (dragIndex !== null && dragIndex !== i) reorderWaypoint(dragIndex, i)
+                setDragIndex(null)
+                setOverIndex(null)
+              }}
+              onDragEnd={() => {
+                setDragIndex(null)
+                setOverIndex(null)
+              }}
+            >
+              <span className="wp-grip" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                  <circle cx="9" cy="6" r="1.6" />
+                  <circle cx="15" cy="6" r="1.6" />
+                  <circle cx="9" cy="12" r="1.6" />
+                  <circle cx="15" cy="12" r="1.6" />
+                  <circle cx="9" cy="18" r="1.6" />
+                  <circle cx="15" cy="18" r="1.6" />
+                </svg>
+              </span>
               <span
                 className={
                   'wp-badge' +
@@ -56,6 +91,24 @@ export default function TourPanel() {
               </span>
               <span className="wp-name">
                 {wp.name ?? `${wp.lat.toFixed(5)}, ${wp.lon.toFixed(5)}`}
+              </span>
+              <span className="wp-move">
+                <button
+                  className="icon-btn"
+                  title="Nach oben"
+                  disabled={i === 0}
+                  onClick={() => reorderWaypoint(i, i - 1)}
+                >
+                  ↑
+                </button>
+                <button
+                  className="icon-btn"
+                  title="Nach unten"
+                  disabled={i === waypoints.length - 1}
+                  onClick={() => reorderWaypoint(i, i + 1)}
+                >
+                  ↓
+                </button>
               </span>
               <button
                 className="icon-btn wp-del"

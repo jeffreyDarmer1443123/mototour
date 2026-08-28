@@ -85,8 +85,8 @@ describe('parseRouteResponse', () => {
     expect(result.distanceKm).toBeCloseTo(20.5)
     expect(result.durationMin).toBeCloseTo(25)
     expect(result.legs).toEqual([
-      { distanceKm: 12.4, durationMin: 15 },
-      { distanceKm: 8.1, durationMin: 10 },
+      { distanceKm: 12.4, durationMin: 15, endCoordinateIndex: 2 },
+      { distanceKm: 8.1, durationMin: 10, endCoordinateIndex: 3 },
     ])
   })
 })

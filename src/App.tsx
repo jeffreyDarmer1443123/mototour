@@ -1,9 +1,13 @@
+import MapControls from './components/MapControls'
 import MapView from './components/MapView'
+import SearchBar from './components/SearchBar'
 import TourPanel from './components/TourPanel'
 import { useRoute } from './hooks/useRoute'
+import { useFuelStations } from './hooks/useFuelStations'
 
 export default function App() {
   useRoute()
+  useFuelStations()
   return (
     <div className="app">
       <MapView />
@@ -25,8 +29,10 @@ export default function App() {
             Moto<em>Tour</em>
           </span>
         </div>
+        <SearchBar />
       </div>
       <TourPanel />
+      <MapControls />
     </div>
   )
 }

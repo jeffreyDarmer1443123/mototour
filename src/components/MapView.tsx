@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Map as MapLibreMap, Marker, NavigationControl } from 'maplibre-gl'
-import type { GeoJSONSource } from 'maplibre-gl'
-import type { Feature } from 'geojson'
+import { Map as MapLibreMap, Marker, NavigationControl, Popup } from 'maplibre-gl'
+import type { GeoJSONSource, MapGeoJSONFeature } from 'maplibre-gl'
+import type { Feature, FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useApp, waypointLabel } from '../state/store'
+import { mapHandle } from '../state/mapHandle'
+import { insertionIndexForPoint } from '../utils/geo'
 
 export const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
 
@@ -19,6 +21,33 @@ function routeGeoJSON(coordinates: [number, number][]): Feature {
   }
 }
 
+const FUEL_SOURCE = 'fuel'
+
+function showFuelPopup(map: MapLibreMap, feature: MapGeoJSONFeature) {
+  const props = feature.properties as { name?: string; brand?: string; kmAlong?: number }
+  const [lon, lat] = (feature.geometry as Point).coordinates
+  const el = document.createElement('div')
+  el.className = 'fuel-pop'
+  const title = document.createElement('strong')
+  title.textContent = props.name ?? 'Tankstelle'
+  const sub = document.createElement('span')
+  sub.textContent = `bei km ${Math.round(props.kmAlong ?? 0)} deiner Tour`
+  const btn = document.createElement('button')
+  btn.textContent = 'Als Tankstopp einfügen'
+  el.append(title, sub, btn)
+  const popup = new Popup({ offset: 12, closeButton: false }).setLngLat([lon, lat]).setDOMContent(el).addTo(map)
+  btn.addEventListener('click', () => {
+    const state = useApp.getState()
+    if (!state.route) return
+    state.addWaypoint(lat, lon, {
+      kind: 'fuel',
+      name: props.name ?? 'Tankstelle',
+      index: insertionIndexForPoint(state.route, [lon, lat]),
+    })
+    popup.remove()
+  })
+}
+
 export default function MapView() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
@@ -27,6 +56,7 @@ export default function MapView() {
 
   const waypoints = useApp((s) => s.tour.waypoints)
   const route = useApp((s) => s.route)
+  const fuelStations = useApp((s) => s.fuelStations)
   const addWaypoint = useApp((s) => s.addWaypoint)
   const updateWaypoint = useApp((s) => s.updateWaypoint)
 
@@ -43,13 +73,50 @@ export default function MapView() {
     map.addControl(new NavigationControl({ showCompass: false }), 'bottom-right')
     map.on('load', () => setReady(true))
     map.on('click', (e) => {
-      useApp.getState().addWaypoint(e.lngLat.lat, e.lngLat.lng)
+      const state = useApp.getState()
+      const { x, y } = e.point
+      const bbox: [[number, number], [number, number]] = [
+        [x - 6, y - 6],
+        [x + 6, y + 6],
+      ]
+      if (map.getLayer('fuel-circles') !== undefined) {
+        const fuelHits = map.queryRenderedFeatures(bbox, { layers: ['fuel-circles'] })
+        if (fuelHits.length > 0) {
+          showFuelPopup(map, fuelHits[0])
+          return
+        }
+      }
+      const hasRouteLayer = map.getLayer('route-line') !== undefined
+      if (state.route && hasRouteLayer) {
+        const hits = map.queryRenderedFeatures(bbox, { layers: ['route-line', 'route-casing'] })
+        if (hits.length > 0) {
+          const index = insertionIndexForPoint(state.route, [e.lngLat.lng, e.lngLat.lat])
+          state.addWaypoint(e.lngLat.lat, e.lngLat.lng, { index })
+          return
+        }
+      }
+      state.addWaypoint(e.lngLat.lat, e.lngLat.lng)
+    })
+    map.on('mousemove', (e) => {
+      const layers = ['route-line', 'fuel-circles'].filter((l) => map.getLayer(l) !== undefined)
+      if (layers.length === 0) return
+      const hits = map.queryRenderedFeatures(
+        [
+          [e.point.x - 6, e.point.y - 6],
+          [e.point.x + 6, e.point.y + 6],
+        ],
+        { layers },
+      )
+      const overFuel = hits.some((h) => h.layer.id === 'fuel-circles')
+      map.getCanvas().style.cursor = overFuel ? 'pointer' : hits.length > 0 ? 'copy' : ''
     })
     mapRef.current = map
+    mapHandle.current = map
 
     return () => {
       map.remove()
       mapRef.current = null
+      mapHandle.current = null
       setReady(false)
     }
   }, [addWaypoint])
@@ -86,6 +153,36 @@ export default function MapView() {
       firstSymbol,
     )
   }, [route, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const data: FeatureCollection = {
+      type: 'FeatureCollection',
+      features: fuelStations.map((s) => ({
+        type: 'Feature',
+        properties: { name: s.name, brand: s.brand, kmAlong: s.kmAlong },
+        geometry: { type: 'Point', coordinates: [s.lon, s.lat] },
+      })),
+    }
+    const source = map.getSource<GeoJSONSource>(FUEL_SOURCE)
+    if (source) {
+      source.setData(data)
+      return
+    }
+    map.addSource(FUEL_SOURCE, { type: 'geojson', data })
+    map.addLayer({
+      id: 'fuel-circles',
+      type: 'circle',
+      source: FUEL_SOURCE,
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 4, 12, 8],
+        'circle-color': '#d98a12',
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2,
+      },
+    })
+  }, [fuelStations, ready])
 
   useEffect(() => {
     const map = mapRef.current

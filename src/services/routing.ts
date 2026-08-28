@@ -51,6 +51,7 @@ interface ValhallaResponse {
 
 export function parseRouteResponse(response: ValhallaResponse): RouteResult {
   const coordinates: [number, number][] = []
+  const legs = []
   for (const leg of response.trip.legs) {
     const points = decodePolyline(leg.shape, 6)
     for (const [lat, lon] of points) {
@@ -58,15 +59,17 @@ export function parseRouteResponse(response: ValhallaResponse): RouteResult {
       if (last && last[0] === lon && last[1] === lat) continue
       coordinates.push([lon, lat])
     }
+    legs.push({
+      distanceKm: leg.summary.length,
+      durationMin: leg.summary.time / 60,
+      endCoordinateIndex: coordinates.length - 1,
+    })
   }
   return {
     coordinates,
     distanceKm: response.trip.summary.length,
     durationMin: response.trip.summary.time / 60,
-    legs: response.trip.legs.map((l) => ({
-      distanceKm: l.summary.length,
-      durationMin: l.summary.time / 60,
-    })),
+    legs,
   }
 }
 
