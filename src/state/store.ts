@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import type { RouteResult, Tour, TourOptions, Waypoint, WaypointKind } from '../types'
 import { DEFAULT_OPTIONS } from '../types'
 import type { FuelStationOnRoute } from '../services/fuelStations'
+import { decodeTourFragment } from '../services/shareLink'
+import { getActiveTourId, loadTour } from '../services/storage'
 
 export function newTour(): Tour {
   return {
@@ -16,6 +18,31 @@ export function newTour(): Tour {
 
 export type RouteStatus = 'idle' | 'loading' | 'error'
 
+function initialTour(): { tour: Tour; fromShare: boolean } {
+  if (typeof window !== 'undefined') {
+    const match = window.location.hash.match(/^#t=([A-Za-z0-9_-]+)$/)
+    if (match) {
+      try {
+        const tour = decodeTourFragment(match[1])
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+        return { tour, fromShare: true }
+      } catch {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
+    }
+    try {
+      const activeId = getActiveTourId()
+      if (activeId) {
+        const stored = loadTour(activeId)
+        if (stored) return { tour: stored, fromShare: false }
+      }
+    } catch {
+      /* localStorage gesperrt – mit leerer Tour starten */
+    }
+  }
+  return { tour: newTour(), fromShare: false }
+}
+
 interface AppState {
   tour: Tour
   route: RouteResult | null
@@ -24,6 +51,8 @@ interface AppState {
   fuelVisible: boolean
   fuelStations: FuelStationOnRoute[]
   fuelStatus: RouteStatus
+  drawerOpen: boolean
+  sharedTourLoaded: boolean
 
   addWaypoint: (lat: number, lon: number, extra?: { kind?: WaypointKind; name?: string; index?: number }) => void
   updateWaypoint: (id: string, patch: Partial<Pick<Waypoint, 'lat' | 'lon' | 'name'>>) => void
@@ -36,6 +65,8 @@ interface AppState {
   setRouteState: (route: RouteResult | null, status: RouteStatus, error?: string | null) => void
   toggleFuel: () => void
   setFuelState: (stations: FuelStationOnRoute[], status: RouteStatus) => void
+  setDrawerOpen: (open: boolean) => void
+  dismissSharedToast: () => void
 }
 
 function touch(tour: Tour, waypoints?: Waypoint[], options?: TourOptions): Tour {
@@ -47,14 +78,18 @@ function touch(tour: Tour, waypoints?: Waypoint[], options?: TourOptions): Tour 
   }
 }
 
+const initial = initialTour()
+
 export const useApp = create<AppState>((set) => ({
-  tour: newTour(),
+  tour: initial.tour,
   route: null,
   routeStatus: 'idle',
   routeError: null,
   fuelVisible: false,
   fuelStations: [],
   fuelStatus: 'idle',
+  drawerOpen: false,
+  sharedTourLoaded: initial.fromShare,
 
   addWaypoint: (lat, lon, extra) =>
     set((s) => {
@@ -115,6 +150,10 @@ export const useApp = create<AppState>((set) => ({
     })),
 
   setFuelState: (stations, status) => set({ fuelStations: stations, fuelStatus: status }),
+
+  setDrawerOpen: (open) => set({ drawerOpen: open }),
+
+  dismissSharedToast: () => set({ sharedTourLoaded: false }),
 }))
 
 if (import.meta.env.DEV) {

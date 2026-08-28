@@ -323,6 +323,30 @@ input {
   text-transform: uppercase;
 }
 
+.tour-name {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border-bottom: 2px solid transparent;
+  padding: 0 2px;
+}
+
+.tour-name:hover {
+  border-bottom-color: var(--line);
+}
+
+.tour-name:focus {
+  border-bottom-color: var(--accent);
+}
+
 .icon-btn {
   display: inline-flex;
   align-items: center;
@@ -612,6 +636,156 @@ input {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ---------- Touren-Drawer ---------- */
+
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 24, 29, 0.35);
+  z-index: 40;
+  animation: fade-in 0.18s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.drawer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(340px, 88vw);
+  background: var(--paper);
+  z-index: 41;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  padding: calc(12px + var(--sat)) 14px calc(12px + var(--sab));
+  animation: slide-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(-40px);
+    opacity: 0;
+  }
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.drawer-head h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.drawer-head .icon-btn {
+  font-size: 20px;
+}
+
+.drawer-new {
+  border: 2px dashed var(--line-strong);
+  border-radius: var(--radius);
+  padding: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--accent-deep);
+  margin-bottom: 12px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.drawer-new:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.drawer-empty {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.drawer-list {
+  list-style: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drawer-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+}
+
+.drawer-row:hover {
+  background: var(--paper-2);
+}
+
+.drawer-row.is-active {
+  background: var(--accent-soft);
+}
+
+.drawer-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 7px 6px;
+  gap: 1px;
+}
+
+.drawer-name {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.drawer-meta {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.drawer-confirm {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 7px 6px;
+}
+
+.drawer-confirm button {
+  font-weight: 600;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--paper-2);
+}
+
+.drawer-confirm button.danger {
+  background: var(--danger);
+  color: #fff;
 }
 
 /* ---------- Tankstellen-Popup & Toast ---------- */

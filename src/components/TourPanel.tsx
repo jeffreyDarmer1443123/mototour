@@ -26,13 +26,27 @@ export default function TourPanel() {
   const reorderWaypoint = useApp((s) => s.reorderWaypoint)
   const setOptions = useApp((s) => s.setOptions)
   const clearTour = useApp((s) => s.clearTour)
+  const tourName = useApp((s) => s.tour.name)
+  const setTourName = useApp((s) => s.setTourName)
+  const setDrawerOpen = useApp((s) => s.setDrawerOpen)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
 
   return (
     <section className="panel" aria-label="Tourplanung">
       <header className="panel-head">
-        <h2>Deine Tour</h2>
+        <button className="icon-btn" title="Meine Touren" onClick={() => setDrawerOpen(true)}>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h10" />
+          </svg>
+        </button>
+        <input
+          className="tour-name"
+          value={tourName}
+          placeholder="Tourname"
+          aria-label="Tourname"
+          onChange={(e) => setTourName(e.target.value)}
+        />
         {waypoints.length > 0 && (
           <button className="icon-btn" title="Tour leeren" onClick={clearTour}>
             {TrashIcon}

@@ -1,13 +1,26 @@
+import { useEffect } from 'react'
 import MapControls from './components/MapControls'
 import MapView from './components/MapView'
 import SearchBar from './components/SearchBar'
+import TourListDrawer from './components/TourListDrawer'
 import TourPanel from './components/TourPanel'
 import { useRoute } from './hooks/useRoute'
 import { useFuelStations } from './hooks/useFuelStations'
+import { useAutoSave } from './hooks/useAutoSave'
+import { useApp } from './state/store'
 
 export default function App() {
   useRoute()
   useFuelStations()
+  useAutoSave()
+  const sharedTourLoaded = useApp((s) => s.sharedTourLoaded)
+  const dismissSharedToast = useApp((s) => s.dismissSharedToast)
+
+  useEffect(() => {
+    if (!sharedTourLoaded) return
+    const timer = setTimeout(dismissSharedToast, 6000)
+    return () => clearTimeout(timer)
+  }, [sharedTourLoaded, dismissSharedToast])
   return (
     <div className="app">
       <MapView />
@@ -33,6 +46,10 @@ export default function App() {
       </div>
       <TourPanel />
       <MapControls />
+      <TourListDrawer />
+      {sharedTourLoaded && (
+        <div className="toast">Geteilte Tour geladen – sie liegt jetzt auch in deinen Touren.</div>
+      )}
     </div>
   )
 }
