@@ -1,0 +1,127 @@
+:root {
+  --paper: #fdfcfa;
+  --paper-2: #f4f2ec;
+  --ink: #16181d;
+  --ink-2: #565b64;
+  --ink-3: #9095a0;
+  --line: #e6e3dc;
+  --line-strong: #cfcbc2;
+  --accent: #e8541d;
+  --accent-deep: #c04314;
+  --accent-soft: #fdeae2;
+  --green: #1d7a4f;
+  --green-soft: #e3f2ea;
+  --danger: #c22f2f;
+  --shadow: 0 2px 6px rgba(22, 24, 29, 0.08), 0 12px 32px rgba(22, 24, 29, 0.14);
+  --shadow-soft: 0 1px 3px rgba(22, 24, 29, 0.1);
+  --radius: 14px;
+  --radius-sm: 9px;
+  --font-ui: 'Barlow', system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--paper-2);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+input {
+  font-family: inherit;
+}
+
+.app {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.app > .map-root {
+  position: absolute;
+  inset: 0;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius);
+  padding: 8px 16px 8px 10px;
+  box-shadow: var(--shadow);
+  user-select: none;
+}
+
+.brand svg {
+  display: block;
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.brand-name em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.chrome-top {
+  position: absolute;
+  top: calc(12px + var(--sat));
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.chrome-top > * {
+  pointer-events: auto;
+}
+
+.maplibregl-ctrl-bottom-right {
+  z-index: 10;
+}
+
+.maplibregl-ctrl-group {
+  border-radius: var(--radius-sm) !important;
+  box-shadow: var(--shadow-soft) !important;
+  overflow: hidden;
+}
+
+.maplibregl-ctrl-attrib {
+  font-family: var(--font-ui);
+  font-size: 10px;
+}

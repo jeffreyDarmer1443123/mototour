@@ -1,0 +1,28 @@
+import MapView from './components/MapView'
+
+export default function App() {
+  return (
+    <div className="app">
+      <MapView />
+      <div className="chrome-top">
+        <div className="brand" title="MotoTour">
+          <svg width="26" height="26" viewBox="0 0 128 128" aria-hidden="true">
+            <rect width="128" height="128" rx="28" fill="none" />
+            <path
+              d="M 24 108 C 52 96, 30 68, 58 58 S 96 66, 88 40 S 96 24, 106 20"
+              fill="none"
+              stroke="#e8541d"
+              strokeWidth="13"
+              strokeLinecap="round"
+            />
+            <circle cx="24" cy="108" r="10" fill="#fdfcfa" />
+            <circle cx="106" cy="20" r="10" fill="#fdfcfa" />
+          </svg>
+          <span className="brand-name">
+            Moto<em>Tour</em>
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
