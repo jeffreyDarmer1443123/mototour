@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import ExportDialog from './components/ExportDialog'
 import MapControls from './components/MapControls'
 import MapView from './components/MapView'
 import SearchBar from './components/SearchBar'
@@ -47,6 +48,7 @@ export default function App() {
       <TourPanel />
       <MapControls />
       <TourListDrawer />
+      <ExportDialog />
       {sharedTourLoaded && (
         <div className="toast">Geteilte Tour geladen – sie liegt jetzt auch in deinen Touren.</div>
       )}

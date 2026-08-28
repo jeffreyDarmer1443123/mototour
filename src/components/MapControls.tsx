@@ -11,6 +11,8 @@ export default function MapControls() {
   const fuelStatus = useApp((s) => s.fuelStatus)
   const hasRoute = useApp((s) => s.route !== null)
   const toggleFuel = useApp((s) => s.toggleFuel)
+  const canExport = useApp((s) => s.tour.waypoints.length >= 2)
+  const setExportOpen = useApp((s) => s.setExportOpen)
 
   const locate = () => {
     if (!navigator.geolocation || locating) return
@@ -44,6 +46,20 @@ export default function MapControls() {
             <circle cx="12" cy="12" r="8" />
           </svg>
         </button>
+        {canExport && (
+          <button
+            className="fab"
+            title="Teilen & Export"
+            onClick={() => setExportOpen(true)}
+          >
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="6" r="3" />
+              <circle cx="18" cy="18" r="3" />
+              <path d="m8.7 10.7 6.6-3.4M8.7 13.3l6.6 3.4" />
+            </svg>
+          </button>
+        )}
         {hasRoute && (
           <button
             className={'fab' + (fuelVisible ? ' is-on' : '') + (fuelStatus === 'loading' ? ' is-busy' : '')}

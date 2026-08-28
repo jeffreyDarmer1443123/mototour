@@ -52,6 +52,7 @@ interface AppState {
   fuelStations: FuelStationOnRoute[]
   fuelStatus: RouteStatus
   drawerOpen: boolean
+  exportOpen: boolean
   sharedTourLoaded: boolean
 
   addWaypoint: (lat: number, lon: number, extra?: { kind?: WaypointKind; name?: string; index?: number }) => void
@@ -66,6 +67,7 @@ interface AppState {
   toggleFuel: () => void
   setFuelState: (stations: FuelStationOnRoute[], status: RouteStatus) => void
   setDrawerOpen: (open: boolean) => void
+  setExportOpen: (open: boolean) => void
   dismissSharedToast: () => void
 }
 
@@ -89,6 +91,7 @@ export const useApp = create<AppState>((set) => ({
   fuelStations: [],
   fuelStatus: 'idle',
   drawerOpen: false,
+  exportOpen: false,
   sharedTourLoaded: initial.fromShare,
 
   addWaypoint: (lat, lon, extra) =>
@@ -152,6 +155,8 @@ export const useApp = create<AppState>((set) => ({
   setFuelState: (stations, status) => set({ fuelStations: stations, fuelStatus: status }),
 
   setDrawerOpen: (open) => set({ drawerOpen: open }),
+
+  setExportOpen: (open) => set({ exportOpen: open }),
 
   dismissSharedToast: () => set({ sharedTourLoaded: false }),
 }))
