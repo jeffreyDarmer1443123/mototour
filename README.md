@@ -18,7 +18,7 @@
 
 | Funktion | Dienst |
 |---|---|
-| Karte | [OpenFreeMap](https://openfreemap.org) (OpenStreetMap-Daten) |
+| Karte | [OpenStreetMap](https://www.openstreetmap.org) Standard-Tiles |
 | Routing | [Valhalla](https://valhalla.openstreetmap.de) (FOSSGIS e.V.) |
 | Ortssuche | [Photon](https://photon.komoot.io) (Komoot) |
 | Tankstellen | [Overpass API](https://overpass-api.de) (OpenStreetMap) |

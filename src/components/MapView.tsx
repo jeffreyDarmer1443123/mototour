@@ -1,13 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
 import { Map as MapLibreMap, Marker, NavigationControl, Popup } from 'maplibre-gl'
-import type { GeoJSONSource, MapGeoJSONFeature } from 'maplibre-gl'
+import type { GeoJSONSource, MapGeoJSONFeature, StyleSpecification } from 'maplibre-gl'
 import type { Feature, FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useApp, waypointLabel } from '../state/store'
 import { mapHandle } from '../state/mapHandle'
 import { insertionIndexForPoint } from '../utils/geo'
 
-export const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+export const MAP_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    },
+  },
+  layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
+}
 
 const ROUTE_SOURCE = 'route'
 const FUEL_SVG =
