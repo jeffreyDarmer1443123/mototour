@@ -65,6 +65,7 @@ function detectWebglIssue(): string | null {
     const canvas = document.createElement('canvas')
     const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl')
     if (!gl) return 'Dein Browser unterstützt kein WebGL. Die Karte kann so nicht angezeigt werden.'
+    ;(gl as WebGLRenderingContext).getExtension('WEBGL_lose_context')?.loseContext()
     return null
   } catch {
     return 'WebGL konnte nicht gestartet werden. Die Karte kann so nicht angezeigt werden.'
@@ -101,18 +102,29 @@ export default function MapView() {
       attributionControl: { compact: true },
     })
     map.addControl(new NavigationControl({ showCompass: false }), 'bottom-right')
-    map.on('load', () => {
+
+    let becameReady = false
+    let loadTimeout: ReturnType<typeof setTimeout> | null = null
+    const markReady = () => {
+      if (becameReady || !map.isStyleLoaded()) return
+      becameReady = true
+      if (loadTimeout) clearTimeout(loadTimeout)
       setReady(true)
       setMapError(null)
-    })
+    }
+    map.on('load', markReady)
+    map.on('styledata', markReady)
     map.on('error', (e) => {
       const message = e.error?.message ?? String(e.error ?? 'Unbekannter Fehler')
       console.error('MapLibre error:', message)
-      setMapError(`Karte konnte nicht geladen werden: ${message}`)
+      // Nach dem ersten erfolgreichen Laden sind einzelne Kachel-Fehler normal
+      // (z. B. beim schnellen Schwenken) und rechtfertigen keine Fehlermeldung.
+      if (!becameReady) setMapError(`Karte konnte nicht geladen werden: ${message}`)
     })
     const canvas = map.getCanvas()
     canvas.addEventListener('webglcontextlost', (e) => {
       e.preventDefault()
+      becameReady = false
       setReady(false)
       setMapError('Die Kartendarstellung wurde unterbrochen (WebGL-Kontext verloren). Versuche die Seite neu zu laden.')
     })
@@ -120,8 +132,8 @@ export default function MapView() {
       setMapError(null)
       map.setStyle(MAP_STYLE)
     })
-    const loadTimeout = setTimeout(() => {
-      if (!map.loaded()) {
+    loadTimeout = setTimeout(() => {
+      if (!becameReady) {
         setMapError('Die Karte lädt ungewöhnlich lange. Prüfe deine Internetverbindung oder lade die Seite neu.')
       }
     }, 12000)
@@ -167,7 +179,7 @@ export default function MapView() {
     mapHandle.current = map
 
     return () => {
-      clearTimeout(loadTimeout)
+      if (loadTimeout) clearTimeout(loadTimeout)
       map.remove()
       mapRef.current = null
       mapHandle.current = null
