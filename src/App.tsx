@@ -1,6 +1,9 @@
 import MapView from './components/MapView'
+import TourPanel from './components/TourPanel'
+import { useRoute } from './hooks/useRoute'
 
 export default function App() {
+  useRoute()
   return (
     <div className="app">
       <MapView />
@@ -23,6 +26,7 @@ export default function App() {
           </span>
         </div>
       </div>
+      <TourPanel />
     </div>
   )
 }
