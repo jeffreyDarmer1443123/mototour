@@ -23,6 +23,8 @@ export default function TourPanel() {
   const routeStatus = useApp((s) => s.routeStatus)
   const routeError = useApp((s) => s.routeError)
   const removeWaypoint = useApp((s) => s.removeWaypoint)
+  const updateWaypoint = useApp((s) => s.updateWaypoint)
+  const retryRoute = useApp((s) => s.retryRoute)
   const reorderWaypoint = useApp((s) => s.reorderWaypoint)
   const setOptions = useApp((s) => s.setOptions)
   const clearTour = useApp((s) => s.clearTour)
@@ -31,6 +33,13 @@ export default function TourPanel() {
   const setDrawerOpen = useApp((s) => s.setDrawerOpen)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
+
+  const commitRename = (id: string) => {
+    updateWaypoint(id, { name: editValue.trim() === '' ? undefined : editValue.trim() })
+    setEditingId(null)
+  }
 
   return (
     <section className="panel" aria-label="Tourplanung">
@@ -103,9 +112,31 @@ export default function TourPanel() {
               >
                 {wp.kind === 'fuel' ? FuelBadge : waypointLabel(i, waypoints.length, wp.kind)}
               </span>
-              <span className="wp-name">
-                {wp.name ?? `${wp.lat.toFixed(5)}, ${wp.lon.toFixed(5)}`}
-              </span>
+              {editingId === wp.id ? (
+                <input
+                  className="wp-rename"
+                  value={editValue}
+                  autoFocus
+                  aria-label="Wegpunkt umbenennen"
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => commitRename(wp.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitRename(wp.id)
+                    if (e.key === 'Escape') setEditingId(null)
+                  }}
+                />
+              ) : (
+                <span
+                  className="wp-name"
+                  title="Doppelklick zum Umbenennen"
+                  onDoubleClick={() => {
+                    setEditingId(wp.id)
+                    setEditValue(wp.name ?? '')
+                  }}
+                >
+                  {wp.name ?? `${wp.lat.toFixed(5)}, ${wp.lon.toFixed(5)}`}
+                </span>
+              )}
               <span className="wp-move">
                 <button
                   className="icon-btn"
@@ -178,7 +209,12 @@ export default function TourPanel() {
       {(route || routeStatus !== 'idle') && (
         <footer className="panel-sum">
           {routeStatus === 'error' ? (
-            <span className="sum-error">{routeError}</span>
+            <>
+              <span className="sum-error">{routeError}</span>
+              <button className="sum-retry" onClick={retryRoute}>
+                Erneut versuchen
+              </button>
+            </>
           ) : route ? (
             <>
               <span className="sum-item">

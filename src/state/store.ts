@@ -54,6 +54,7 @@ interface AppState {
   drawerOpen: boolean
   exportOpen: boolean
   sharedTourLoaded: boolean
+  routeRetryCount: number
 
   addWaypoint: (lat: number, lon: number, extra?: { kind?: WaypointKind; name?: string; index?: number }) => void
   updateWaypoint: (id: string, patch: Partial<Pick<Waypoint, 'lat' | 'lon' | 'name'>>) => void
@@ -69,6 +70,7 @@ interface AppState {
   setDrawerOpen: (open: boolean) => void
   setExportOpen: (open: boolean) => void
   dismissSharedToast: () => void
+  retryRoute: () => void
 }
 
 function touch(tour: Tour, waypoints?: Waypoint[], options?: TourOptions): Tour {
@@ -93,6 +95,7 @@ export const useApp = create<AppState>((set) => ({
   drawerOpen: false,
   exportOpen: false,
   sharedTourLoaded: initial.fromShare,
+  routeRetryCount: 0,
 
   addWaypoint: (lat, lon, extra) =>
     set((s) => {
@@ -159,6 +162,8 @@ export const useApp = create<AppState>((set) => ({
   setExportOpen: (open) => set({ exportOpen: open }),
 
   dismissSharedToast: () => set({ sharedTourLoaded: false }),
+
+  retryRoute: () => set((s) => ({ routeRetryCount: s.routeRetryCount + 1 })),
 }))
 
 if (import.meta.env.DEV) {

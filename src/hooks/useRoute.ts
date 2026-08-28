@@ -7,6 +7,7 @@ const DEBOUNCE_MS = 600
 export function useRoute() {
   const waypoints = useApp((s) => s.tour.waypoints)
   const options = useApp((s) => s.tour.options)
+  const retryCount = useApp((s) => s.routeRetryCount)
   const setRouteState = useApp((s) => s.setRouteState)
 
   useEffect(() => {
@@ -32,5 +33,5 @@ export function useRoute() {
       clearTimeout(timer)
       controller.abort()
     }
-  }, [waypoints, options, setRouteState])
+  }, [waypoints, options, retryCount, setRouteState])
 }
