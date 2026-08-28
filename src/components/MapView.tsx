@@ -7,7 +7,7 @@ import { useApp, waypointLabel } from '../state/store'
 import { mapHandle } from '../state/mapHandle'
 import { insertionIndexForPoint } from '../utils/geo'
 
-export const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
+export const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
 
 const ROUTE_SOURCE = 'route'
 const FUEL_SVG =
